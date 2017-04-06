@@ -1,6 +1,24 @@
-import {app, BrowserWindow} from 'electron'
+import {app, BrowserWindow, Menu} from 'electron'
 import path from 'path'
 import url from 'url'
+
+const isDevelopment = (process.env.NODE_ENV === 'development')
+
+const installExtensions = async () => {
+  const installer = require('electron-devtools-installer')
+  const extensions = [
+    'REACT_DEVELOPER_TOOLS',
+    'REDUX_DEVTOOLS'
+  ]
+  const forceDownload = !!process.env.UPGRADE_EXTENSIONS
+  for (const name of extensions) {
+    try {
+      await installer.default(installer[name], forceDownload)
+    } catch (e) {
+      console.log(`Error installing ${name} extension: ${e.message}`)
+    }
+  }
+}
 
 let mainWindow
 let forceQuit = false
@@ -12,6 +30,10 @@ app.on('window-all-closed', () => {
 })
 
 app.on('ready', async () => {
+  if (isDevelopment) {
+    await installExtensions()
+  }
+
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 800,
@@ -57,4 +79,19 @@ app.on('ready', async () => {
       })
     }
   })
+
+  if (isDevelopment) {
+    // auto-open dev tools
+    mainWindow.webContents.openDevTools()
+
+    // add inspect element on right click menu
+    mainWindow.webContents.on('context-menu', (e, props) => {
+      Menu.buildFromTemplate([{
+        label: 'Inspect element',
+        click () {
+          mainWindow.inspectElement(props.x, props.y)
+        }
+      }]).popup(mainWindow)
+    })
+  }
 })
