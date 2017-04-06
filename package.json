@@ -6,7 +6,8 @@
   "scripts": {
     "build": "babel app/ --copy-files --out-dir build",
     "lint": "standard",
-    "test": "ava"
+    "test": "ava",
+    "watch": "npm run build -- --source-maps true --watch"
   },
   "repository": {
     "type": "git",
